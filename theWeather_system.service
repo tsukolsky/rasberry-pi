@@ -1,0 +1,9 @@
+[UNIT]
+Description=Start theWeather.system statistics
+
+[Service]
+ExecStart=/usr/bin/startProcedure.sh
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
