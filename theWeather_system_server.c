@@ -34,10 +34,6 @@
 #include <netinet/in.h>
 #include <stdbool.h>
 
-//Define how large of a buffer we are going to allow
-#define ONE_MB 1024
-#define NUMBER_OF_MB 1		//<-------CHange this
-
 //How many requests can be sent into a pending state/queue
 #define PENDING_REQUESTS 20
 
@@ -55,10 +51,9 @@ int main(int argc, char *argv[]){
 	//Declare Variables
         int sockfd, newsockfd, portno;				//Server socket descriptor, client<->server socket descriptor, portno
         socklen_t clilen;					//length of socket name for client
-        char buffer[256];					//buffer length we can write to
         struct sockaddr_in serv_addr, cli_addr;
         int n;							//length used during read and write system calls
-
+	char buffer[64];
 	//If there are too few arguments provided on command line, say it needs a port number and ask.
         if (argc < 2) {
                 fprintf(stderr,"ERROR, no port provided\n");
@@ -84,6 +79,7 @@ int main(int argc, char *argv[]){
 	 
 	//THis is what should continue and contine and continue
 	for (;;){
+		printf("Server is ready...\n");
 		//Accept a new client
 		clilen = sizeof(cli_addr);
 		newsockfd = accept(sockfd, 
@@ -92,7 +88,7 @@ int main(int argc, char *argv[]){
 
 		//new sockfd has what we are going to be printing too. Can spawn a new process or whatever
 		if (newsockfd < 0){error("ERROR on accept");}
-		n=read(newsockfd,buffer,255);				//get what they are asking for
+		n=read(newsockfd,buffer,64);				//get what they are asking for
 		if (n<0){error("ERROR writing to socket...");}	
 		
 		//There wasn't an error, we receieved some string from the client.
@@ -100,6 +96,7 @@ int main(int argc, char *argv[]){
 			bool successful=false;
 			successful=dealWithConnection(newsockfd,buffer);
 			if (!successful){error("Unable to complete request.");}
+			bzero(buffer,64);
 		}//end else
 		close(newsockfd);
 	 }//end infinite for
@@ -123,12 +120,11 @@ void error(const char *msg)
 
 bool dealWithConnection(int socketHandle, const char *emailAddress){
 	//Declare Variables.
-	const int bufferSize=ONE_MB*NUMBER_OF_MB;		//how long of a buffer we allow
 	int pid, myPipe[2];		//process ids, pipes, lengths or read/writes
-	char receiveBuffer[bufferSize];				//declare buffer
+	char receiveBuffer[128];			//declare buffer
 
 	if (pipe(myPipe)<0){error("Unable to initialize pipes."); return false;}
-	
+/*	
 	pid=fork();
 	if (pid<0){error("Unable to fork."); return false;}
 	if (pid==0){//child
@@ -151,7 +147,7 @@ bool dealWithConnection(int socketHandle, const char *emailAddress){
 		//Wait for process to finish, no zombie process.
 		waitpid(pid,NULL,0);
 		printf("Received:%s\n",receiveBuffer);
-		/*
+*/		/*
 		//Call email script with input as the email address.
 		int pid2;
 		pid2=fork();
@@ -165,7 +161,9 @@ bool dealWithConnection(int socketHandle, const char *emailAddress){
 			waitpid(pid2,NULL,0);
 		}//end if-else pid2==0
 		*/
-	}//end if-else pid==0, end of parent process Everyting worked if we got here.
+//	}//end if-else pid==0, end of parent process Everyting worked if we got here.
+	printf("Got email address:%s\n",emailAddress);
+	int n=write(socketHandle,emailAddress,strlen(emailAddress));
 	return true;
 }//end function
 

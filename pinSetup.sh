@@ -21,4 +21,4 @@ echo "out" > /sys/class/gpio/gpio25/direction
 echo 0 > /sys/class/gpio/gpio25/value
 
 echo "Finished setting pins" > /dev/kmsg
-exit()
+exit
