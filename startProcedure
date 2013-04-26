@@ -1,8 +1,9 @@
 #!/bin/sh
+myPath=/home/sukolsky/Documents/rasberry-pi
 
-/usr/bin/pinSetup.sh 
-/usr/bin/theWeather_system_server &
-/usr/bin/sendIP.py &
+$myPath/pinSetup.sh 
+#$myPath/theWeather_system_server &
+/home/sukolsky/sendIP.py 
 
-echo "Done with service" > /dev/kmsg
+echo "Done with startup routine." > /dev/kmsg
 exit
