@@ -2,7 +2,7 @@
 Description=Start theWeather.system statistics
 
 [Service]
-ExecStart=/usr/bin/startProcedure.sh
+ExecStart=/usr/bin/startProcedure
 KillMode=process
 
 [Install]

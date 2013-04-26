@@ -128,7 +128,7 @@ bool dealWithConnection(int socketHandle, const char *emailAddress){
 	char receiveBuffer[bufferSize];				//declare buffer
 
 	if (pipe(myPipe)<0){error("Unable to initialize pipes."); return false;}
-	
+/*	
 	pid=fork();
 	if (pid<0){error("Unable to fork."); return false;}
 	if (pid==0){//child
@@ -151,7 +151,7 @@ bool dealWithConnection(int socketHandle, const char *emailAddress){
 		//Wait for process to finish, no zombie process.
 		waitpid(pid,NULL,0);
 		printf("Received:%s\n",receiveBuffer);
-		/*
+*/		/*
 		//Call email script with input as the email address.
 		int pid2;
 		pid2=fork();
@@ -165,7 +165,8 @@ bool dealWithConnection(int socketHandle, const char *emailAddress){
 			waitpid(pid2,NULL,0);
 		}//end if-else pid2==0
 		*/
-	}//end if-else pid==0, end of parent process Everyting worked if we got here.
+//	}//end if-else pid==0, end of parent process Everyting worked if we got here.
+	printf("Got email address:%s\n",emailAddress);
 	return true;
 }//end function
 
