@@ -45,7 +45,7 @@
 /*	Forward Declarations	 */
 /*===============================*/
 void error(const char *msg);
-bool dealWithConnection(int socketHandle);
+bool dealWithConnection(int socketHandle, const char *emailAddress);
 	
 /*===============================*/
 /*      Main Program		 */
@@ -99,7 +99,7 @@ int main(int argc, char *argv[]){
 		else {
 			bool successful=false;
 			successful=dealWithConnection(newsockfd,buffer);
-			else{error("Unable to respond to request.");}
+			if (!successful){error("Unable to complete request.");}
 		}//end else
 		close(newsockfd);
 	 }//end infinite for
@@ -124,7 +124,7 @@ void error(const char *msg)
 bool dealWithConnection(int socketHandle, const char *emailAddress){
 	//Declare Variables.
 	const int bufferSize=ONE_MB*NUMBER_OF_MB;		//how long of a buffer we allow
-	int pid, myPipe;		//process ids, pipes, lengths or read/writes
+	int pid, myPipe[2];		//process ids, pipes, lengths or read/writes
 	char receiveBuffer[bufferSize];				//declare buffer
 
 	if (pipe(myPipe)<0){error("Unable to initialize pipes."); return false;}
@@ -149,7 +149,7 @@ bool dealWithConnection(int socketHandle, const char *emailAddress){
 		int charRead=read(myPipe[0],receiveBuffer,bufferSize);
 		if (charRead<0){error("Unable to read from child process."); return false;}
 		//Wait for process to finish, no zombie process.
-		waitpid2(pid,NULL,0);
+		waitpid(pid,NULL,0);
 		printf("Received:%s\n",receiveBuffer);
 		/*
 		//Call email script with input as the email address.
@@ -162,7 +162,7 @@ bool dealWithConnection(int socketHandle, const char *emailAddress){
 			error("Unable to execute emailStats");
 			return false;
 		} else {	//parent
-			waitpid2(pid2,NULL,0);
+			waitpid(pid2,NULL,0);
 		}//end if-else pid2==0
 		*/
 	}//end if-else pid==0, end of parent process Everyting worked if we got here.
