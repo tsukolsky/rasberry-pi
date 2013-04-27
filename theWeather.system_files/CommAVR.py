@@ -34,6 +34,7 @@ use = "Usage: %prog [options] <arguments>. String entered must have '.' to termi
 parser = optparse.OptionParser(usage=use)
 parser.add_option('-s', dest='inString', help='String to be sent, real mode')
 parser.add_option('-D',action="store_true", dest="debug",default=False,help='User String for debug mode')
+parser.add_option('-e',dest='email',help='Which email to send to')
 
 (options, args) = parser.parse_args()
 
@@ -156,19 +157,23 @@ if dataString.find('/')!=-1:
 		else:	
 			message+='Humidity: '+field[2:]+'%\n'
 
-
-##Email out the results
-IF=open('/home/sukolsky/Documents/emailList.txt','r')	
-emails=IF.readlines()
-IF.close()
+##Get who to email.
 emailList=''
-for address in emails:
-	if address.rstrip()!='':
-		emailList+=address.rstrip().strip()+', '
+##If we didn't get an email here, then this was spawned by a new email into the server. Send only to that user (else statement)
+##-otherwise, send to everyone on the list..
+if options.email is None:
+	IF=open('/home/sukolsky/Documents/emailList.txt','r')	
+	emails=IF.readlines()
+	IF.close()
+	for address in emails:
+		if address.rstrip()!='':
+			emailList+=address.rstrip().strip()+', '
 
-##Get rid of last ,
-emailList=emailList[:-2]
-print emailList
+	##Get rid of last ,
+	emailList=emailList[:-2]
+	print emailList
+else:
+	emailList=options.email
 
 ##Formulate the email
 gmail_user='tsukolsky'

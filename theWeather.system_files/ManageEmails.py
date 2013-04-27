@@ -32,11 +32,12 @@ for anEmail in emails:
 		hadToDelete=True
 		changedEmails+=anEmail.rstrip()
 
+##If we didn't delete an email we should add the email, then call CommScript
 if hadToDelete is False:
 	OF.write(email+'\n')
 	OF.close()
 	changedEmails+=email
-	p=subprocess.Popen(['/home/sukolsky/Documents/CommAVR.py','-s','STATS.'],stdout=subprocess.PIPE)
+	p=subprocess.Popen(['/home/sukolsky/Documents/CommAVR.py','-s','STATS.','-e',email],stdout=subprocess.PIPE)
 	out,err=p.communicate()
 	try:
 		print "Output:"+out
