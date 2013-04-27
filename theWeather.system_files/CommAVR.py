@@ -144,7 +144,7 @@ else:
 		exit(2)
 
 ##Turn the data string into something interesting
-message=''
+message='Your current weather readings, brought to you by Todd Sukolsky and Michael Gurr:\n\n'
 if dataString.find('/')!=-1:
 	fields=dataString.split('/')
 	for field in fields:
@@ -157,8 +157,10 @@ if dataString.find('/')!=-1:
 		else:	
 			message+='Humidity: '+field[2:]+'%\n'
 
+message+='\n--theWeather.system'
+
 ##Get who to email.
-emailList=''
+emailList=[]
 ##If we didn't get an email here, then this was spawned by a new email into the server. Send only to that user (else statement)
 ##-otherwise, send to everyone on the list..
 if options.email is None:
@@ -167,16 +169,15 @@ if options.email is None:
 	IF.close()
 	for address in emails:
 		if address.rstrip()!='':
-			emailList+=address.rstrip().strip()+', '
-
-	##Get rid of last ,
-	emailList=emailList[:-2]
-	print emailList
+			emailList.append(address.rstrip().strip())
 else:
-	emailList=options.email
+	emailList.append(options.email)
+
+
+print emailList
 
 ##Formulate the email
-gmail_user='tsukolsky'
+gmail_user='theWeather.system'
 gmail_password=''
 smtpserver=smtplib.SMTP('smtp.gmail.com',587)
 smtpserver.ehlo()
@@ -190,7 +191,7 @@ msg=MIMEText(message)
 msg['Subject']='theWeather.system data on %s' % today.strftime('%b %d %Y')
 msg['From']=gmail_user
 try:
-	smtpserver.sendmail(gmail_user,[emailList],msg.as_string())
+	smtpserver.sendmail(gmail_user,emailList,msg.as_string())
 except:
 	print 'Unable to send email. Most likely no recipients'
 
