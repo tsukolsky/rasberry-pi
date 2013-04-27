@@ -124,7 +124,8 @@ bool dealWithConnection(int socketHandle, const char *emailAddress){
 	char receiveBuffer[128];			//declare buffer
 
 	if (pipe(myPipe)<0){error("Unable to initialize pipes."); return false;}
-/*	
+
+	//First fork to manage the email list, it  will call the other script
 	pid=fork();
 	if (pid<0){error("Unable to fork."); return false;}
 	if (pid==0){//child
@@ -133,7 +134,7 @@ bool dealWithConnection(int socketHandle, const char *emailAddress){
 		dup2(myPipe[1],2);
 		close(myPipe[0]);
 		
-		char *args[]={"/usr/bin/CommAVR.py","-s","STATS.",0};
+		char *args[]={"/home/sukolsky/Documents/rasberry-pi/theWeather.system_files/ManageEmails.py","-e",emailAddress,0};
 		execv(args[0],args);
 		error("Unable to exec communication program");
 		return false;
@@ -142,26 +143,9 @@ bool dealWithConnection(int socketHandle, const char *emailAddress){
 		dup2(myPipe[0],0);
 		close(myPipe[1]);
 		
-		int charRead=read(myPipe[0],receiveBuffer,bufferSize);
-		if (charRead<0){error("Unable to read from child process."); return false;}
 		//Wait for process to finish, no zombie process.
 		waitpid(pid,NULL,0);
-		printf("Received:%s\n",receiveBuffer);
-*/		/*
-		//Call email script with input as the email address.
-		int pid2;
-		pid2=fork();
-		if (pid2<0){error("Unable to fork email process");}
-		if (pid2==0){//child
-			char *args[4]={"/usr/bin/emailStats","-a",emailAddress,0};
-			execv(args[0],args);
-			error("Unable to execute emailStats");
-			return false;
-		} else {	//parent
-			waitpid(pid2,NULL,0);
-		}//end if-else pid2==0
-		*/
-//	}//end if-else pid==0, end of parent process Everyting worked if we got here.
+	}
 	printf("Got email address:%s\n",emailAddress);
 	int n=write(socketHandle,emailAddress,strlen(emailAddress));
 	return true;

@@ -20,6 +20,11 @@ import os
 import time
 import serial
 import optparse
+import subprocess
+import smtplib
+import socket
+from email.mime.text import MIMEText
+import datetime
 
 ##OPTPARSER INFO
 inputString=''
@@ -36,10 +41,10 @@ parser.add_option('-D',action="store_true", dest="debug",default=False,help='Use
 if options.inString is None and options.debug is True:
 	askUser=True
 elif options.inString is not None and options.debug is False:
-	inputString=inString
+	inputString=options.inString
 elif options.inString is not None and options.debug is True:
 	askUser=True
-	inputString=inString
+	inputString=options.inString
 
 ##Declare send string routines.
 def sendString(theString):
@@ -49,19 +54,24 @@ def sendString(theString):
 		time.sleep(100.0/1000.0)
 
 ##getString() routine. Set to get UART strings fromt he AVR, terminated by X. Timeout=10 seconds.
-def getString():
+def getString(waitingForAck):
 	##Wait for an X that signifies the end of data.
 	gotX=False
 	timeout=time.time()+10
 	captureString=''
 	while gotX is False and ((time.time()-timeout) < 0):
-		captureString+=serPort.read(serPort.inWaiting())
-		if (captureString.find('X')!=-1):					#If we found an X, we can kill it and return the string striped					
+		captureString+=serialPort.read(serialPort.inWaiting())
+		if captureString.find('X')!=-1:							#If we found an X, we can kill it and return the string striped					
 			gotX=True
-			return captureString.strip().rstrip().strip('X')			#Strip of newline, while space, X
+		#	print captureString.strip().rstrip().replace('X','')
+			return captureString.strip().rstrip().replace('X','')			#Strip of newline, while space, X
+		elif captureString.find('ACK.')!=-1 and waitingForAck is True:
+			gotX=True
+			return captureString.strip().rstrip()
 		else:
 			time.sleep(20.0/1000.0)		#Wait for another 20 milliseonces
-		
+		#print captureString
+	print captureString		
 	return 'error'
 
 	
@@ -90,15 +100,15 @@ dataString=''				##What we get back when we ask for data
 noAck=True					##If we have gotten an ack or not
 
 #Setup the connection with the system
-os.system('echo 1 > /sys/class/gpio/gpoi25/value')
+os.system('echo 1 > /sys/class/gpio/gpio25/value')
 time.sleep(25.0/1000.0)
 os.system('echo 0 > /sys/class/gpio/gpio25/value')
 
 ##We have 60 seconds to get an ack
 ackTimeout=time.time()+60
-while ((time.time()-timeout)<0) and noAck:
+while ((time.time()-ackTimeout)<0) and noAck:
 	##Get the ACK
-	ackString=getString()
+	ackString=getString(True)
 	if ackString.find('error')==-1:			#Error wasn't returned, so we have a valid ack string. continue
 		noAck=False
 	else:
@@ -111,23 +121,71 @@ if noAck:
 	exit()
 else:
 	#If the inputString is null, ask the user what we should be sending.
-	if inputString is None:
+	if inputString is None or askUser is True:
 		inputString=raw_input(">>")
 	#Send the string, wait 50 ms for a response before activating timeout
 	sendString(inputString)
-	time.sleep(50.0/1000.0)
-	dataString=getString()
+	time.sleep(200.0/1000.0)
+	dataString=getString(False)
 	#If error is not in the string, split the string into it's parts and display them
 	if dataString.find('error')==-1:
-		##We got the right data, print it out.
-		fields=dataString.split('/')
-		for field in fields:
-			print field.strip('X')+'\n'
+		if dataString.find('/')!=-1:
+			##We got the right data, print it out.
+			fields=dataString.split('/')
+			for field in fields:
+				print field+'\n'
+		else:
+			print dataString
+			exit(0)
 	else:
 		##Didn't get valid date
 		print 'Timeout: Unable to receive data. Exiting.'
 		exit(2)
-	
+
+##Turn the data string into something interesting
+message=''
+if dataString.find('/')!=-1:
+	fields=dataString.split('/')
+	for field in fields:
+		if field.find('AD')!=-1:
+			message+='Analog Devices On-Board Temp:'+field[2:]+' F\n'
+		elif field.find('TI')!=-1:
+			message+='Texas Instruments On-Board Temp:'+field[2:]+' F\n'
+		elif field.find('TH')!=-1:
+			message+='Thermistor Ambient Temp:'+field[2:]+' F\n'
+		else:	
+			message+='Humidity: '+field[2:]+'%\n'
+
+
+##Email out the results
+IF=open('/home/sukolsky/Documents/rasberry-pi/theWeather.system_files/emailList.txt','r')	
+emails=IF.readlines()
+IF.close()
+emailList=''
+for address in emails:
+	emailList+=address.rstrip().strip()+', '
+
+##Get rid of last ,
+emailList=emailList[:-2]
+print emailList
+
+##Formulate the email
+gmail_user=''
+gmail_password=''
+smtpserver=smtplib.SMTP('smtp.gmail.com',587)
+smtpserver.ehlo()
+smtpserver.starttls()
+smtpserver.ehlo
+smtpserver.login(gmail_user,gmail_password)
+today=datetime.date.today()
+
+#Create actual email
+msg=MIMEText(message)
+msg['Subject']='theWeather.system data on %s' % today.strftime('%b %d %Y')
+msg['From']=gmail_user
+smtpserver.sendmail(gmail_user,[emailList],msg.as_string())
+smtpserver.quit()
+
 exit(0)
 
 

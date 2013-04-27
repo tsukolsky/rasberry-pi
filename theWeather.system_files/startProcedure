@@ -1,5 +1,5 @@
 #!/bin/sh
-myPath=/home/sukolsky/Documents/rasberry-pi
+myPath=/home/sukolsky/Documents/rasberry-pi/theWeather.system_files
 
 $myPath/pinSetup.sh 
 #$myPath/theWeather_system_server &
