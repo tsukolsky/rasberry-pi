@@ -18,21 +18,24 @@ if options.emailIn is None:
 else:
 	email=options.emailIn
 
-IF=open('/home/sukolsky/Documents/rasberry-pi/theWeather.system_files/emailList.txt','r')
+IF=open('/home/sukolsky/Documents/emailList.txt','r')
 emails=IF.readlines()
 IF.close()
-OF=open('/home/sukolsky/Documents/rasberry-pi/theWeather.system_files/emailList.txt','w')
+OF=open('/home/sukolsky/Documents/emailList.txt','w')
 hadToDelete=False
+changedEmails=''
 for anEmail in emails:
 	if anEmail!=email+'\n':
 		##Write the email back to the file
 		OF.write(anEmail)
 	else:
 		hadToDelete=True
+		changedEmails+=anEmail.rstrip()
 
 if hadToDelete is False:
 	OF.write(email+'\n')
 	OF.close()
+	changedEmails+=email
 	p=subprocess.Popen(['/home/sukolsky/Documents/CommAVR.py','-s','STATS.'],stdout=subprocess.PIPE)
 	out,err=p.communicate()
 	try:
@@ -44,5 +47,17 @@ if hadToDelete is False:
 	except:
 		print "No errors"
 
-##Emails are now done
+##Emails are now done, update owner of change
+alert=subprocess.Popen(['/home/sukolsky/Documents/ChangeInEmail.py','-e',changedEmails],stdout=subprocess.PIPE)
+aOut,aErr=alert.communicate()
+try:
+	print "Alerted:"+aOut
+except:
+	print "No alert output"
+try:
+	print "Alerted Errors:"+aErr
+except:
+	print "No alert errors"
+
+##Updated owner, now exit.
 exit(0)

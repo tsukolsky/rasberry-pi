@@ -158,7 +158,7 @@ if dataString.find('/')!=-1:
 
 
 ##Email out the results
-IF=open('/home/sukolsky/Documents/rasberry-pi/theWeather.system_files/emailList.txt','r')	
+IF=open('/home/sukolsky/Documents/emailList.txt','r')	
 emails=IF.readlines()
 IF.close()
 emailList=''
@@ -170,7 +170,7 @@ emailList=emailList[:-2]
 print emailList
 
 ##Formulate the email
-gmail_user=''
+gmail_user='tsukolsky'
 gmail_password=''
 smtpserver=smtplib.SMTP('smtp.gmail.com',587)
 smtpserver.ehlo()

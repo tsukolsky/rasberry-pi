@@ -2,8 +2,8 @@
 myPath=/home/sukolsky/Documents/rasberry-pi/theWeather.system_files
 
 $myPath/pinSetup.sh 
-#$myPath/theWeather_system_server &
-/home/sukolsky/sendIP.py 
-
+/home/sukolsky/sendIP.py
+$myPath/theWeather_system_server &		##Start the server quietly.
+ 
 echo "Done with startup routine." > /dev/kmsg
 exit
