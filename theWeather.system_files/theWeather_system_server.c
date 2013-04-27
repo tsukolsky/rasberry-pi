@@ -134,7 +134,7 @@ bool dealWithConnection(int socketHandle, const char *emailAddress){
 		dup2(myPipe[1],2);
 		close(myPipe[0]);
 		
-		char *args[]={"/home/sukolsky/Documents/rasberry-pi/theWeather.system_files/ManageEmails.py","-e",emailAddress,0};
+		char *args[]={"/home/sukolsky/Documents/ManageEmails.py","-e",emailAddress,0};
 		execv(args[0],args);
 		error("Unable to exec communication program");
 		return false;

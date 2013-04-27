@@ -163,7 +163,8 @@ emails=IF.readlines()
 IF.close()
 emailList=''
 for address in emails:
-	emailList+=address.rstrip().strip()+', '
+	if address.rstrip()!='':
+		emailList+=address.rstrip().strip()+', '
 
 ##Get rid of last ,
 emailList=emailList[:-2]
@@ -183,7 +184,11 @@ today=datetime.date.today()
 msg=MIMEText(message)
 msg['Subject']='theWeather.system data on %s' % today.strftime('%b %d %Y')
 msg['From']=gmail_user
-smtpserver.sendmail(gmail_user,[emailList],msg.as_string())
+try:
+	smtpserver.sendmail(gmail_user,[emailList],msg.as_string())
+except:
+	print 'Unable to send email. Most likely no recipients'
+
 smtpserver.quit()
 
 exit(0)

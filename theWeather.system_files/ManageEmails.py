@@ -16,7 +16,7 @@ parser.add_option('-e',dest='emailIn',help='Email to add delete')
 if options.emailIn is None:
 	exit(1)
 else:
-	email=options.emailIn
+	email=options.emailIn.rstrip().strip()
 
 IF=open('/home/sukolsky/Documents/emailList.txt','r')
 emails=IF.readlines()
@@ -46,6 +46,12 @@ if hadToDelete is False:
 		print "Error:"+err
 	except:
 		print "No errors"
+
+#make sure the file is closed for the update process
+try:
+	OF.close()
+except:
+	print 'File already closed'
 
 ##Emails are now done, update owner of change
 alert=subprocess.Popen(['/home/sukolsky/Documents/ChangeInEmail.py','-e',changedEmails],stdout=subprocess.PIPE)
