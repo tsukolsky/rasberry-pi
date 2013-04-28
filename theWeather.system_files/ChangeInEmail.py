@@ -40,8 +40,8 @@ if message=='':
 message+=changedEmail.rstrip()
 
 #Email Params
-to='tsukolsky@gmail.com'
-gmail_user='tsukolsky'
+to=''
+gmail_user=''
 gmail_password=''
 smtpserver=smtplib.SMTP('smtp.gmail.com',587)
 smtpserver.ehlo()

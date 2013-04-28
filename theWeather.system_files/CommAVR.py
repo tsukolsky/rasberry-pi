@@ -15,6 +15,7 @@
 ## Notes: Commands to AVR are 'STATS.' currently, that's it
 ########################################################################
 
+import random
 import sys
 import os
 import time
@@ -35,7 +36,7 @@ parser = optparse.OptionParser(usage=use)
 parser.add_option('-s', dest='inString', help='String to be sent, real mode')
 parser.add_option('-D',action="store_true", dest="debug",default=False,help='User String for debug mode')
 parser.add_option('-e',dest='email',help='Which email to send to')
-
+parser.add_option('-E',action="store_true",dest="noSend",default=False,help='Send an email, or just print?')
 (options, args) = parser.parse_args()
 
 
@@ -132,9 +133,7 @@ else:
 	if dataString.find('error')==-1:
 		if dataString.find('/')!=-1:
 			##We got the right data, print it out.
-			fields=dataString.split('/')
-			for field in fields:
-				print field+'\n'
+			print 'Got data...parsing'
 		else:
 			print dataString
 			exit(0)
@@ -144,20 +143,46 @@ else:
 		exit(2)
 
 ##Turn the data string into something interesting
-message='Your current weather readings, brought to you by Todd Sukolsky and Michael Gurr:\n\n'
-if dataString.find('/')!=-1:
+from time import localtime,strftime
+message='@%s Local Time:\n' % strftime('%I:%M:%S%p',localtime())
+
+#print dataString
+
+if dataString.find('AD')!=-1:
+	##This is called when we asked for STATS. Print only the current weather readings
+	message+='Your current weather readings, brought to you by Todd Sukolsky and Michael Gurr:\n\nCurrent Stats:\n---------------------------------------------\n'
 	fields=dataString.split('/')
 	for field in fields:
 		if field.find('AD')!=-1:
-			message+='Analog Devices On-Board Temp:'+field[2:]+' F\n'
+			message+='Analog Devices On-Board Temp: '+field[2:]+' F\n'
 		elif field.find('TI')!=-1:
-			message+='Texas Instruments On-Board Temp:'+field[2:]+' F\n'
+			message+='Texas Instruments On-Board Temp: '+field[2:]+' F\n'
 		elif field.find('TH')!=-1:
-			message+='Thermistor Ambient Temp:'+field[2:]+' F\n'
+			message+='Thermistor Ambient Room Temp: '+field[2:]+' F\n'
 		else:	
 			message+='Humidity: '+field[2:]+'%\n'
+else:
+	##This is called when we asked for WEEK. Print out the week past weather data.
+	message+='Ahh, a new week begins. Miles to go!\nHere are your weekly weather readings, brought to you by Todd Sukolsky and Michael Gurr:\n\nLast Weeks Stats:\n---------------------------\n'
+	fields=dataString.split('/')
+	for field in fields:
+		if field.find('WH')!=-1:
+			message+='Average High: '+field[2:]+' F\n'
+		elif field.find('WL')!=-1:
+			message+='Average Low: '+field[2:]+' F\n'
+		elif field.find('WT')!=-1:
+			message+='Average Temp: '+field[2:]+' F\n'
+		else:
+			message+='Average Humidity: '+field[2:]+'%\n'
+##Add signature
+message+='\n\n--theWeather.system'
+random=random.randint(0,4)
+creepers=['Oh, and btw, you forgot to call me','Look to the Northeast for a meteor show...Im a Virgo, you?','Dannggg, did you see her. Shes got some sizzle','Forgot to ask, but do you have a boyfriend?','Quick Question. When do I get to meet the parents??']
+message+='\n\n\n'+creepers[random]
 
-message+='\n--theWeather.system'
+if options.noSend is True:
+	print message
+	exit(0)
 
 ##Get who to email.
 emailList=[]
@@ -172,12 +197,12 @@ if options.email is None:
 			emailList.append(address.rstrip().strip())
 else:
 	emailList.append(options.email)
-
+	message='Thanks for subscribing to theWeather.system!\n\n'+message
 
 print emailList
 
 ##Formulate the email
-gmail_user='theWeather.system'
+gmail_user=''
 gmail_password=''
 smtpserver=smtplib.SMTP('smtp.gmail.com',587)
 smtpserver.ehlo()
